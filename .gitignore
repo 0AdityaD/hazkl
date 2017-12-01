@@ -2,6 +2,13 @@
 !*.*
 !/**/
 
+*/.stack/*
+
+src/Lexer.hs
+src/lexer
+
+!Makefile
+
 .metadata
 bin/
 tmp/

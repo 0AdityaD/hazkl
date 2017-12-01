@@ -11,7 +11,7 @@ $alpha = [a-zA-Z_]       -- alphabetic characters
 tokens :-
 
   $white+                       ;
-  \"[^\"]*\"                     { \s -> STRING (realString s)}
+  \"[^\"]*\"                    { \s -> STRING (realString s)}
   "readstring"                  { \s -> READSTRING }
   "readint"                     { \s -> READINT }
   "print"                       { \s -> PRINT }
@@ -25,10 +25,8 @@ tokens :-
   "let"                         { \s -> LET }
   \+                            { \s -> PLUS }
   \-                            { \s -> MINUS }
-  $alpha [$alpha $digit]*       { \s -> IDENTIFIER s }
   \*                            { \s -> TIMES }
   \/                            { \s -> DIVIDE }
-  $digit+                       { \s -> INT (read s) }
   \(                            { \s -> LPAREN }
   \)                            { \s -> RPAREN }
   \&                            { \s -> AND }
@@ -46,11 +44,15 @@ tokens :-
   "fun"                         { \s -> FUN }
   \,                            { \s -> COMMA }
   "in"                          { \s -> IN }
+  $alpha [$alpha $digit]*       { \s -> IDENTIFIER s }
+  $digit+                       { \s -> INT (read s) }
 
 {
 
+scanTokens :: String -> [TOKEN]
 scanTokens = alexScanTokens
 
+realString :: String -> String
 realString s = tail . take (length s - 1) $ s
 
 }
