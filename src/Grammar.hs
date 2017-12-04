@@ -10,13 +10,13 @@ data Exp =      Print   Exp
             |   And     Exp Exp         
             |   Or      Exp Exp         
             |   Plus    Exp Exp         
-            |   Minus   Exp Exp            
+            |   Minus   Exp Exp         
             |   Times   Exp Exp         
-            |   Divide  Exp Exp         
-            |   Isnil   Exp             
-            |   Cons    Exp Exp         
+            |   Divide  Exp Exp
+            |   Isnil   Exp
+            |   Cons    Exp Exp
             |   HD      Exp             
-            |   TL      Exp                  
+            |   TL      Exp
             |   ReadInt                 
             |   ReadString              
             |   Nil
@@ -25,7 +25,7 @@ data Exp =      Print   Exp
             |   FakeLambda  IdList Exp
             |   Lambda  IdConst Exp
             |   Application App
-            |   ExpString StringConst      
+            |   ExpString StringConst
             |   ExpInt IntConst
             |   ExpId IdConst
     deriving (Show, Eq)
