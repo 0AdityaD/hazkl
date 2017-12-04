@@ -5,10 +5,11 @@ import Parser
 import System.IO
 import System.Environment
 import Data.Char
+import Data.Maybe
 import Data.Map (Map)
 import qualified Data.Map as Map
 
-data Prog   =   LambdaVal IdConst Prog
+data Prog   =   LambdaVal IdConst Exp
             |   StringVal String
             |   IntVal Int
         deriving (Show, Eq)
@@ -18,7 +19,12 @@ type Env    =   Map IdConst Prog
 progToExp :: Prog -> Exp
 progToExp (IntVal i)                    =   ExpInt (Int i)
 progToExp (StringVal s)                 =   ExpString (String s)
-progToExp (LambdaVal idConst prog)      =   Lambda idConst (progToExp prog)
+progToExp (LambdaVal idConst exp)       =   Lambda idConst exp
+
+expToProg :: Exp -> Prog
+expToProg (ExpInt (Int i))              =   IntVal i
+expToProg (ExpString (String str))      =   StringVal str
+expToProg (Lambda idConst exp)          =   LambdaVal idConst exp
 
 printProg :: Prog -> IO Prog
 printProg p = do    putStrLn . show $ p
@@ -41,9 +47,12 @@ readStringProg = do string <- getLine
 
 eval :: Env -> Exp -> IO Prog
 eval _ (ExpInt (Int i))                                         =   return (IntVal i)
+
 eval _ (ExpString (String str))                                 =   return (StringVal str)
-eval s (Lambda idConst exp1)                                    =   do  e1 <- eval s exp1
-                                                                        return (LambdaVal (idConst) e1)
+
+eval s (Lambda idConst exp1)                                    =   return (LambdaVal (idConst) exp1)
+
+eval s (ExpId idConst)                                          =   return (fromJust (Map.lookup idConst s))
 
 eval s (Print (ExpInt (Int i)))                                 =   do  result <- (printProg (IntVal i))
                                                                         return result
@@ -155,7 +164,12 @@ eval s (Branch (ExpInt (Int i)) exp2 exp3)                      =   if i /= 0 th
 eval s (Branch exp1 exp2 exp3)                                  =   do  p1 <- eval s exp1
                                                                         let e1 = progToExp p1
                                                                         eval s (Branch e1 exp2 exp3)
--- TODO: ISNIL, CONS, HD, TL, NIL, Let, Lambda, Application
+
+eval s (Let idConst exp1 exp2)                                  =   do  p1 <- eval s exp1
+                                                                        let s' = Map.insert idConst p1 s
+                                                                        eval s' exp2
+
+-- TODO: ISNIL, CONS, HD, TL, NIL, Application
 
 main :: IO ()
 main =  do  args <- getArgs
