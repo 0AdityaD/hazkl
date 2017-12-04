@@ -7,6 +7,9 @@
 src/Lexer.hs
 src/lexer
 
+src/Parser.hs
+src/parser
+
 !Makefile
 
 .metadata
