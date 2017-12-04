@@ -11,41 +11,41 @@ $alpha = [a-zA-Z_]       -- alphabetic characters
 tokens :-
 
   $white+                       ;
-  \"[^\"]*\"                    { \s -> STRING (realString s)}
-  "readstring"                  { \s -> READSTRING }
-  "readint"                     { \s -> READINT }
-  "print"                       { \s -> PRINT }
-  "isnil"                       { \s -> ISNIL }
-  \!                            { \s -> HD }
-  \#                            { \s -> TL }
-  \@                            { \s -> CONS }
-  "nil"                         { \s -> NIL }
-  \.                            { \s -> DOT }
-  "with"                        { \s -> WITH }
-  "let"                         { \s -> LET }
-  \+                            { \s -> PLUS }
-  \-                            { \s -> MINUS }
-  \*                            { \s -> TIMES }
-  \/                            { \s -> DIVIDE }
-  \(                            { \s -> LPAREN }
-  \)                            { \s -> RPAREN }
-  \&                            { \s -> AND }
-  \|                            { \s -> OR }
-  \=                            { \s -> EQEQ }
-  \<\>                          { \s -> NEQ }
-  \>                            { \s -> GTGT }
-  \>\=                          { \s -> GEQ }
-  \<                            { \s -> LTLT }
-  \<\=                          { \s -> LEQ }
-  "if"                          { \s -> IF }
-  "then"                        { \s -> THEN }
-  "else"                        { \s -> ELSE }
-  "lambda"                      { \s -> LAMBDA }
-  "fun"                         { \s -> FUN }
-  \,                            { \s -> COMMA }
-  "in"                          { \s -> IN }
-  $alpha [$alpha $digit]*       { \s -> IDENTIFIER s }
-  $digit+                       { \s -> INT (read s) }
+  \"[^\"]*\"                    { \s -> TOKEN_STRING (realString s)}
+  "readstring"                  { \s -> TOKEN_READSTRING }
+  "readint"                     { \s -> TOKEN_READINT }
+  "print"                       { \s -> TOKEN_PRINT }
+  "isnil"                       { \s -> TOKEN_ISNIL }
+  \!                            { \s -> TOKEN_HD }
+  \#                            { \s -> TOKEN_TL }
+  \@                            { \s -> TOKEN_CONS }
+  "nil"                         { \s -> TOKEN_NIL }
+  \.                            { \s -> TOKEN_DOT }
+  "with"                        { \s -> TOKEN_WITH }
+  "let"                         { \s -> TOKEN_LET }
+  \+                            { \s -> TOKEN_PLUS }
+  \-                            { \s -> TOKEN_MINUS }
+  \*                            { \s -> TOKEN_TIMES }
+  \/                            { \s -> TOKEN_DIVIDE }
+  \(                            { \s -> TOKEN_LPAREN }
+  \)                            { \s -> TOKEN_RPAREN }
+  \&                            { \s -> TOKEN_AND }
+  \|                            { \s -> TOKEN_OR }
+  \=                            { \s -> TOKEN_EQ }
+  \<\>                          { \s -> TOKEN_NEQ }
+  \>                            { \s -> TOKEN_GT }
+  \>\=                          { \s -> TOKEN_GEQ }
+  \<                            { \s -> TOKEN_LT }
+  \<\=                          { \s -> TOKEN_LEQ }
+  "if"                          { \s -> TOKEN_IF }
+  "then"                        { \s -> TOKEN_THEN }
+  "else"                        { \s -> TOKEN_ELSE }
+  "lambda"                      { \s -> TOKEN_LAMBDA }
+  "fun"                         { \s -> TOKEN_FUN }
+  \,                            { \s -> TOKEN_COMMA }
+  "in"                          { \s -> TOKEN_IN }
+  $alpha [$alpha $digit]*       { \s -> TOKEN_IDENTIFIER s }
+  $digit+                       { \s -> TOKEN_INT (read s) }
 
 {
 

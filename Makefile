@@ -1,3 +1,5 @@
+.DEFAULT_GOAL=lexer
+
 init:
 	mkdir -p bin
 
@@ -7,7 +9,7 @@ lex: init src/Lexer.x Makefile src/Token.hs
 lexer: init lex src/Lexer.x src/Lexer.hs Makefile
 	cd src; ghc -o lexer LexMain.hs
 	mv src/lexer bin
-	make cleansrc
+	make -s cleansrc
 
 clean: cleansrc cleanbin
 

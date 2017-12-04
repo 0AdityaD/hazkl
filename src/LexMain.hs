@@ -5,4 +5,4 @@ main :: IO ()
 main = do
     code <- getContents
     let tokens = scanTokens code
-    putStrLn . show $ tokens
+    putStrLn . unlines . map show $ tokens
