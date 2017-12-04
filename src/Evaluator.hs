@@ -2,6 +2,8 @@ import Token
 import Lexer
 import Grammar
 import Parser
+import System.IO
+import System.Environment
 import Data.Char
 import Data.Map (Map)
 import qualified Data.Map as Map
@@ -21,6 +23,21 @@ progToExp (LambdaVal idConst prog)      =   Lambda idConst (progToExp prog)
 printProg :: Prog -> IO Prog
 printProg p = do    putStrLn . show $ p
                     return (IntVal 0)
+
+getNum :: IO Int
+getNum = do line <- getLine
+            if and . map isDigit $ line then
+                return (read line :: Int)
+            else
+                return (0)
+
+readIntProg :: IO Prog
+readIntProg = do    num <- getNum
+                    return (IntVal num)
+
+readStringProg :: IO Prog
+readStringProg = do string <- getLine
+                    return (StringVal string)
 
 eval :: Env -> Exp -> IO Prog
 eval _ (ExpInt (Int i))                                         =   return (IntVal i)
@@ -127,8 +144,23 @@ eval s (Divide exp1 exp2)                                       =   do  p1 <- ev
                                                                         let e2 = progToExp p2
                                                                         eval s (Divide e1 e2)
 
+eval _ (ReadInt)                                                =   readIntProg
+
+eval _ (ReadString)                                             =   readStringProg
+
+eval s (Branch (ExpInt (Int i)) exp2 exp3)                      =   if i /= 0 then
+                                                                        eval s exp2
+                                                                    else
+                                                                        eval s exp3
+eval s (Branch exp1 exp2 exp3)                                  =   do  p1 <- eval s exp1
+                                                                        let e1 = progToExp p1
+                                                                        eval s (Branch e1 exp2 exp3)
+-- TODO: ISNIL, CONS, HD, TL, NIL, Let, Lambda, Application
 
 main :: IO ()
-main =  do  program <- getContents
-            result <- eval (Map.fromList []) . fixLambdas . parse . scanTokens $ program
+main =  do  args <- getArgs
+            let filename = head args
+            handle <- openFile filename ReadMode
+            program <- hGetContents handle
+            result <- eval (Map.fromList []) . fixLambdas . parse . scanTokens . map toLower $ program
             putStrLn . show $ result
