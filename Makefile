@@ -19,10 +19,15 @@ parser: init parse Makefile
 	mv src/parser bin
 	make -s cleansrc
 
+hazkl: init parse lex Makefile src/Evaluator.hs
+	cd src; ghc -o hazkl Evaluator.hs
+	mv src/hazkl bin
+	make -s cleansrc
+
 clean: cleansrc cleanbin
 
 cleansrc:
-	cd src; rm -f *.o *.hi lexer Lexer.hs parser Parser.hs
+	cd src; rm -f *.o *.hi lexer Lexer.hs parser Parser.hs hazkl
 
 cleanbin: init
 	cd bin; rm -f *

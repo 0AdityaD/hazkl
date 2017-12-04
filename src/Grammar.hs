@@ -31,13 +31,13 @@ data Exp =      Print   Exp
     deriving (Show, Eq)
 
 data IntConst = Int Int
-    deriving (Show, Eq)
+    deriving (Show, Eq, Ord)
 
 data StringConst = String String
-    deriving (Show, Eq)
+    deriving (Show, Eq, Ord)
 
 data IdConst = Id String
-    deriving (Show, Eq)
+    deriving (Show, Eq, Ord)
 
 type IdList = [IdConst]
 
