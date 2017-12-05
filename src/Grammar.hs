@@ -28,16 +28,55 @@ data Exp =      Print   Exp
             |   ExpString StringConst
             |   ExpInt IntConst
             |   ExpId IdConst
-    deriving (Show, Eq)
+    deriving (Eq)
+
+instance Show Exp where
+	show (Print exp1)            = "(print" ++ (show exp1) ++ ")"
+	show (EqEq exp1 exp2)        = "(" ++ (show exp1) ++ " = "  ++ (show exp2) ++ ")"
+	show (Neq exp1 exp2)         = "(" ++ (show exp1) ++ " <> " ++ (show exp2) ++ ")"
+	show (LtLt exp1 exp2)        = "(" ++ (show exp1) ++ " < "  ++ (show exp2) ++ ")"
+	show (Leq exp1 exp2)         = "(" ++ (show exp1) ++ " <= " ++ (show exp2) ++ ")"
+	show (GtGt exp1 exp2)        = "(" ++ (show exp1) ++ " > "  ++ (show exp2) ++ ")"
+	show (Geq exp1 exp2)         = "(" ++ (show exp1) ++ " >= " ++ (show exp2) ++ ")"
+	show (And exp1 exp2) 	     = "(" ++ (show exp1) ++ " & "  ++ (show exp2) ++ ")"
+	show (Or exp1 exp2)          = "(" ++ (show exp1) ++ " | "  ++ (show exp2) ++ ")"
+	show (Plus exp1 exp2) 	     = "(" ++ (show exp1) ++ " + "  ++ (show exp2) ++ ")"
+	show (Minus exp1 exp2) 	     = "(" ++ (show exp1) ++ " - "  ++ (show exp2) ++ ")"
+	show (Times exp1 exp2) 	     = "(" ++ (show exp1) ++ " * "  ++ (show exp2) ++ ")"
+	show (Divide exp1 exp2)      = "(" ++ (show exp1) ++ " / " ++ (show exp2) ++ ")"
+	show (Isnil exp)             = "(IsNil" ++ (show exp) ++ ")"
+	show (Cons exp1 exp2)        = "(" ++ (show exp1) ++ " @ " ++ (show exp2) ++ ")"
+	show (HD exp)                = "(!" ++ (show exp) ++ ")"
+	show (TL exp)                = "(#" ++ (show exp) ++ ")"
+	show (ReadInt)               = "readInt"
+	show (ReadString)            = "readString"
+	show (Nil)                   = "Nil"
+	show (Branch exp1 exp2 exp3) = "(if " ++ (show exp1) ++ " then " ++ (show exp2) ++ " else " ++ (show exp3) ++ ")"
+	show (Let id exp1 exp2)      = "let " ++ (show id) ++ " = " ++ (show exp1) ++ " in " ++ (show exp2)
+ 	show (FakeLambda list exp)   = "TODO fake lambda"
+	show (Lambda id exp)         = "lambda " ++ (show id) ++ ". " ++ (show exp)
+	show (Application app)       = "TODO application"
+	show (ExpString const)       = show const
+	show (ExpInt const)          = show const
+	show (ExpId const) 	         = show const
 
 data IntConst = Int Int
-    deriving (Show, Eq, Ord)
+    deriving (Eq, Ord)
+
+instance Show IntConst where
+	show (Int int) = show int
 
 data StringConst = String String
-    deriving (Show, Eq, Ord)
+    deriving (Eq, Ord)
+
+instance Show StringConst where
+	show (String string) = "\"" ++ string ++ "\""
 
 data IdConst = Id String
-    deriving (Show, Eq, Ord)
+    deriving (Eq, Ord)
+
+instance Show IdConst where
+	show (Id str) = str
 
 type IdList = [IdConst]
 

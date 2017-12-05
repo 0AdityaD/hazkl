@@ -12,7 +12,12 @@ import qualified Data.Map as Map
 data Prog   =   LambdaVal IdConst Exp
             |   StringVal String
             |   IntVal Int
-        deriving (Show, Eq)
+        deriving (Eq)
+		
+instance Show Prog where
+	show (LambdaVal id exp) = "lambda " ++ (show id) ++ ". " ++ (show exp)
+	show (IntVal num)	 	= show num
+	show (StringVal str) 	= "\"" ++ str ++ "\""
 
 type Env    =   Map IdConst Prog
 
