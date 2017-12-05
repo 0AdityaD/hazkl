@@ -45,6 +45,10 @@ readStringProg :: IO Prog
 readStringProg = do string <- getLine
                     return (StringVal string)
 
+apply :: Exp -> [Exp] -> Exp
+apply exp []                        =   exp
+apply (Lambda idConst exp1) (x:xs)  =   subst idConst x (apply exp1 xs)
+
 eval :: Env -> Exp -> IO Prog
 eval _ (ExpInt (Int i))                                         =   return (IntVal i)
 
@@ -168,6 +172,8 @@ eval s (Branch exp1 exp2 exp3)                                  =   do  p1 <- ev
 eval s (Let idConst exp1 exp2)                                  =   do  p1 <- eval s exp1
                                                                         let s' = Map.insert idConst p1 s
                                                                         eval s' exp2
+
+eval s (Application (x:xs))                                     =   eval s (apply x xs)
 
 -- TODO: ISNIL, CONS, HD, TL, NIL, Application
 
