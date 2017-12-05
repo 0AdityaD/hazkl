@@ -54,7 +54,7 @@ instance Show Exp where
     show (Branch exp1 exp2 exp3) = "(if " ++ (show exp1) ++ " then " ++ (show exp2) ++ " else " ++ (show exp3) ++ ")"
     show (Let id exp1 exp2)      = "let " ++ (show id) ++ " = " ++ (show exp1) ++ " in " ++ (show exp2)
     show (FakeLambda list exp)   = "TODO fake lambda"
-    show (Lambda id exp)         = "lambda " ++ (show id) ++ ". " ++ (show exp)
+    show (Lambda id exp)         = "lambda " ++ (show id) ++ ". " ++ (showUnevaluatedCons exp)
     show (Application app)       = "(" ++ showApp app ++ ")"
     show (ExpString const)       = show const
     show (ExpInt const)          = show const
@@ -85,6 +85,39 @@ type App = [Exp]
 showApp :: App -> String
 showApp [x]     = show x
 showApp (x:xs)  = show x ++ " " ++ showApp xs
+
+showUnevaluatedCons :: Exp -> String
+showUnevaluatedCons (Cons exp1 exp2)        = "(" ++ showUnevaluatedCons exp1 ++ " @ " ++ showUnevaluatedCons exp2 ++ ")"
+showUnevaluatedCons (Print exp1)            = "(print" ++ (showUnevaluatedCons exp1) ++ ")"
+showUnevaluatedCons (EqEq exp1 exp2)        = "(" ++ (showUnevaluatedCons exp1) ++ " = "  ++ (showUnevaluatedCons exp2) ++ ")"
+showUnevaluatedCons (Neq exp1 exp2)         = "(" ++ (showUnevaluatedCons exp1) ++ " <> " ++ (showUnevaluatedCons exp2) ++ ")"
+showUnevaluatedCons (LtLt exp1 exp2)        = "(" ++ (showUnevaluatedCons exp1) ++ " < "  ++ (showUnevaluatedCons exp2) ++ ")"
+showUnevaluatedCons (Leq exp1 exp2)         = "(" ++ (showUnevaluatedCons exp1) ++ " <= " ++ (showUnevaluatedCons exp2) ++ ")"
+showUnevaluatedCons (GtGt exp1 exp2)        = "(" ++ (showUnevaluatedCons exp1) ++ " > "  ++ (showUnevaluatedCons exp2) ++ ")"
+showUnevaluatedCons (Geq exp1 exp2)         = "(" ++ (showUnevaluatedCons exp1) ++ " >= " ++ (showUnevaluatedCons exp2) ++ ")"
+showUnevaluatedCons (And exp1 exp2)         = "(" ++ (showUnevaluatedCons exp1) ++ " & "  ++ (showUnevaluatedCons exp2) ++ ")"
+showUnevaluatedCons (Or exp1 exp2)          = "(" ++ (showUnevaluatedCons exp1) ++ " | "  ++ (showUnevaluatedCons exp2) ++ ")"
+showUnevaluatedCons (Plus exp1 exp2)        = "(" ++ (showUnevaluatedCons exp1) ++ " + "  ++ (showUnevaluatedCons exp2) ++ ")"
+showUnevaluatedCons (Minus exp1 exp2)       = "(" ++ (showUnevaluatedCons exp1) ++ " - "  ++ (showUnevaluatedCons exp2) ++ ")"
+showUnevaluatedCons (Times exp1 exp2)       = "(" ++ (showUnevaluatedCons exp1) ++ " * "  ++ (showUnevaluatedCons exp2) ++ ")"
+showUnevaluatedCons (Divide exp1 exp2)      = "(" ++ (showUnevaluatedCons exp1) ++ " / " ++ (showUnevaluatedCons exp2) ++ ")"
+showUnevaluatedCons (Isnil exp)             = "(IsNil" ++ (showUnevaluatedCons exp) ++ ")"
+showUnevaluatedCons (HD exp)                = "(!" ++ (showUnevaluatedCons exp) ++ ")"
+showUnevaluatedCons (TL exp)                = "(#" ++ (showUnevaluatedCons exp) ++ ")"
+showUnevaluatedCons (ReadInt)               = "readInt"
+showUnevaluatedCons (ReadString)            = "readString"
+showUnevaluatedCons (Nil)                   = "Nil"
+showUnevaluatedCons (Branch exp1 exp2 exp3) = "(if " ++ (showUnevaluatedCons exp1) ++ " then " ++ (showUnevaluatedCons exp2) ++
+                                                    " else " ++ (showUnevaluatedCons exp3) ++ ")"
+showUnevaluatedCons (Let id exp1 exp2)      = "let " ++ (show id) ++ " = " ++ (showUnevaluatedCons exp1) ++ " in " ++ (showUnevaluatedCons exp2)
+showUnevaluatedCons (FakeLambda list exp)   = "TODO fake lambda"
+showUnevaluatedCons (Lambda id exp)         = "lambda " ++ (show id) ++ ". " ++ (showUnevaluatedCons exp)
+showUnevaluatedCons (Application app)       = "(" ++ show app ++ ")"
+showUnevaluatedCons (ExpString const)       = show const
+showUnevaluatedCons (ExpInt const)          = show const
+showUnevaluatedCons (ExpId const)           = show const
+
+
 
 fixLambdas :: Exp -> Exp
 fixLambdas (FakeLambda [x] exp)     =   (Lambda x (fixLambdas exp))
