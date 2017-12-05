@@ -13,11 +13,11 @@ data Prog   =   LambdaVal IdConst Exp
             |   StringVal String
             |   IntVal Int
         deriving (Eq)
-		
+
 instance Show Prog where
-	show (LambdaVal id exp) = "lambda " ++ (show id) ++ ". " ++ (show exp)
-	show (IntVal num)	 	= show num
-	show (StringVal str) 	= "\"" ++ str ++ "\""
+    show (LambdaVal id exp) = "lambda " ++ (show id) ++ ". " ++ (show exp)
+    show (IntVal num)       = show num
+    show (StringVal str)    = "\"" ++ str ++ "\""
 
 type Env    =   Map IdConst Prog
 
