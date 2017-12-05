@@ -45,7 +45,7 @@ instance Show Exp where
     show (Times exp1 exp2)       = "(" ++ (show exp1) ++ " * "  ++ (show exp2) ++ ")"
     show (Divide exp1 exp2)      = "(" ++ (show exp1) ++ " / " ++ (show exp2) ++ ")"
     show (Isnil exp)             = "(IsNil" ++ (show exp) ++ ")"
-    show (Cons exp1 exp2)        = "(" ++ (show exp1) ++ " @ " ++ (show exp2) ++ ")"
+    show (Cons exp1 exp2)        = "[" ++ (show exp1) ++ ", " ++ (show exp2) ++ "]"
     show (HD exp)                = "(!" ++ (show exp) ++ ")"
     show (TL exp)                = "(#" ++ (show exp) ++ ")"
     show (ReadInt)               = "readInt"
@@ -55,7 +55,7 @@ instance Show Exp where
     show (Let id exp1 exp2)      = "let " ++ (show id) ++ " = " ++ (show exp1) ++ " in " ++ (show exp2)
     show (FakeLambda list exp)   = "TODO fake lambda"
     show (Lambda id exp)         = "lambda " ++ (show id) ++ ". " ++ (show exp)
-    show (Application app)       = "TODO application"
+    show (Application app)       = "(" ++ showApp app ++ ")"
     show (ExpString const)       = show const
     show (ExpInt const)          = show const
     show (ExpId const)           = show const
@@ -81,6 +81,10 @@ instance Show IdConst where
 type IdList = [IdConst]
 
 type App = [Exp]
+
+showApp :: App -> String
+showApp [x]     = show x
+showApp (x:xs)  = show x ++ " " ++ showApp xs
 
 fixLambdas :: Exp -> Exp
 fixLambdas (FakeLambda [x] exp)     =   (Lambda x (fixLambdas exp))
@@ -131,7 +135,7 @@ subst old sub (Application xs)          =   (Application (map (subst old sub) xs
 subst old sub (Lambda idConst exp)
     |   idConst == old                  =   (Lambda idConst exp)
     |   otherwise                       =   (Lambda idConst (subst old sub exp))
-subst old sub (ExpId i)
-    |   old == i                        =   sub
-    |   otherwise                       =   (ExpId i)
+subst old sub (ExpId idConst)
+    |   idConst == old                  =   sub
+    |   otherwise                       =   (ExpId idConst)
 subst old sub exp                       =   exp

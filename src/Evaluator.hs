@@ -9,45 +9,11 @@ import Data.Maybe
 import Data.Map (Map)
 import qualified Data.Map as Map
 
-data Prog   =   LambdaVal IdConst Exp
-            |   StringVal String
-            |   IntVal Int
-            |   NilVal
-            |   ConsVal Prog Prog
-            |   HdVal Exp
-            |   TlVal Exp
-        deriving (Eq)
+type Env    =   Map IdConst Exp
 
-instance Show Prog where
-    show (LambdaVal id exp)     = "lambda " ++ (show id) ++ ". " ++ (show exp)
-    show (IntVal num)           = show num
-    show (StringVal str)        = "\"" ++ str ++ "\""
-    show (NilVal)               = "Nil"
-    show (ConsVal prog1 prog2)  = "[" ++ (show prog1) ++ ", " ++ (show prog2) ++ "]"
-
-type Env    =   Map IdConst Prog
-
-progToExp :: Prog -> Exp
-progToExp (IntVal i)                    =   ExpInt (Int i)
-progToExp (StringVal s)                 =   ExpString (String s)
-progToExp (LambdaVal idConst exp)       =   Lambda idConst exp
-progToExp (ConsVal prog1 prog2)         =   Cons (progToExp prog1) (progToExp prog2)
-progToExp (HdVal exp1)                  =   HD exp1
-progToExp (TlVal exp1)                  =   TL exp1
-progToExp (NilVal)                      =   Nil
-
-expToProg :: Exp -> Prog
-expToProg (ExpInt (Int i))              =   IntVal i
-expToProg (ExpString (String str))      =   StringVal str
-expToProg (Lambda idConst exp)          =   LambdaVal idConst exp
-expToProg (Cons exp1 exp2)              =   ConsVal (expToProg exp1) (expToProg exp2)
-expToProg (HD exp1)                     =   HdVal exp1
-expToProg (TL exp1)                     =   TlVal exp1
-expToPRog (Nil)                         =   NilVal
-
-printProg :: Prog -> IO Prog
-printProg p = do    putStrLn . show $ p
-                    return (IntVal 0)
+printExp :: Exp -> IO Exp
+printExp e = do putStrLn . show $ e
+                return (ExpInt (Int 0))
 
 getNum :: IO Int
 getNum = do line <- getLine
@@ -56,174 +22,145 @@ getNum = do line <- getLine
             else
                 return (0)
 
-readIntProg :: IO Prog
-readIntProg = do    num <- getNum
-                    return (IntVal num)
+readIntExp :: IO Exp
+readIntExp = do num <- getNum
+                return (ExpInt (Int num))
 
-readStringProg :: IO Prog
-readStringProg = do string <- getLine
-                    return (StringVal string)
+readStringExp :: IO Exp
+readStringExp = do  string <- getLine
+                    return (ExpString (String string))
 
-apply :: Exp -> [Exp] -> Exp
-apply exp []                        =   exp
-apply (Lambda idConst exp1) (x:xs)  =   subst idConst x (apply exp1 xs)
+apply :: Env -> Exp -> [Exp] -> IO Exp
+apply s (Lambda idConst exp1) (x:xs)    =   do  e1 <- (apply s exp1 xs)
+                                                return (subst idConst x e1)
+apply s exp []                          =   return exp
+apply s exp (x:xs)                      =   do  e1 <- eval s exp
+                                                apply s e1 (x:xs)
 
-eval :: Env -> Exp -> IO Prog
-eval _ (ExpInt (Int i))                                         =   return (IntVal i)
+eval :: Env -> Exp -> IO Exp
+eval _ (ExpInt (Int i))                                         =   return (ExpInt (Int i))
 
-eval _ (ExpString (String str))                                 =   return (StringVal str)
+eval _ (ExpString (String str))                                 =   return (ExpString (String str))
 
-eval s (Lambda idConst exp1)                                    =   return (LambdaVal (idConst) exp1)
+eval s (Lambda idConst exp1)                                    =   return (Lambda (idConst) exp1)
 
 eval s (ExpId idConst)                                          =   return (fromJust (Map.lookup idConst s))
 
-eval s (Print (ExpInt (Int i)))                                 =   do  result <- (printProg (IntVal i))
+eval s (Print (ExpInt (Int i)))                                 =   do  result <- (printExp (ExpInt (Int i)))
                                                                         return result
-eval s (Print (ExpString (String str)))                         =   do  result <- (printProg (StringVal str))
+eval s (Print (ExpString (String str)))                         =   do  result <- (printExp (ExpString (String str)))
                                                                         return result
-eval s (Print (Lambda idConst exp1))                            =   do  e1 <- eval s exp1
-                                                                        printProg e1
-eval s (Print exp)                                              =   do  p1 <- eval s exp
-                                                                        let e1 = progToExp p1
+eval s (Print (Lambda idConst exp1))                            =   do  result <- (printExp (Lambda idConst exp1))
+                                                                        return result
+eval s (Print exp)                                              =   do  e1 <- eval s exp
                                                                         eval s (Print e1)
-
-eval s (EqEq (ExpInt (Int i)) (ExpInt (Int j)))                 =   return (IntVal (if i == j then 1 else 0))
-eval s (EqEq exp1 exp2)                                         =   do  p1 <- eval s exp1
-                                                                        let e1 = progToExp p1
-                                                                        p2 <- eval s exp2
-                                                                        let e2 = progToExp p2
+eval s (EqEq (ExpInt (Int i)) (ExpInt (Int j)))                 =   return (ExpInt (Int (if i == j then 1 else 0)))
+eval s (EqEq exp1 exp2)                                         =   do  e1 <- eval s exp1
+                                                                        e2 <- eval s exp2
                                                                         eval s (EqEq e1 e2)
 
-eval s (Neq (ExpInt (Int i)) (ExpInt (Int j)))                  =   return (IntVal (if i /= j then 1 else 0))
-eval s (Neq exp1 exp2)                                          =   do  p1 <- eval s exp1
-                                                                        let e1 = progToExp p1
-                                                                        p2 <- eval s exp2
-                                                                        let e2 = progToExp p2
+eval s (Neq (ExpInt (Int i)) (ExpInt (Int j)))                  =   return (ExpInt (Int (if i /= j then 1 else 0)))
+eval s (Neq exp1 exp2)                                          =   do  e1 <- eval s exp1
+                                                                        e2 <- eval s exp2
                                                                         eval s (Neq e1 e2)
 
-eval s (LtLt (ExpInt (Int i)) (ExpInt (Int j)))                 =   return (IntVal (if i < j then 1 else 0))
-eval s (LtLt exp1 exp2)                                         =   do  p1 <- eval s exp1
-                                                                        let e1 = progToExp p1
-                                                                        p2 <- eval s exp2
-                                                                        let e2 = progToExp p2
+eval s (LtLt (ExpInt (Int i)) (ExpInt (Int j)))                 =   return (ExpInt (Int (if i < j then 1 else 0)))
+eval s (LtLt exp1 exp2)                                         =   do  e1 <- eval s exp1
+                                                                        e2 <- eval s exp2
                                                                         eval s (LtLt e1 e2)
 
-eval s (Leq (ExpInt (Int i)) (ExpInt (Int j)))                  =   return (IntVal (if i <= j then 1 else 0))
-eval s (Leq exp1 exp2)                                          =   do  p1 <- eval s exp1
-                                                                        let e1 = progToExp p1
-                                                                        p2 <- eval s exp2
-                                                                        let e2 = progToExp p2
+eval s (Leq (ExpInt (Int i)) (ExpInt (Int j)))                  =   return (ExpInt (Int (if i <= j then 1 else 0)))
+eval s (Leq exp1 exp2)                                          =   do  e1 <- eval s exp1
+                                                                        e2 <- eval s exp2
                                                                         eval s (Leq e1 e2)
 
-eval s (GtGt (ExpInt (Int i)) (ExpInt (Int j)))                 =   return (IntVal (if i > j then 1 else 0))
-eval s (GtGt exp1 exp2)                                         =   do  p1 <- eval s exp1
-                                                                        let e1 = progToExp p1
-                                                                        p2 <- eval s exp2
-                                                                        let e2 = progToExp p2
+eval s (GtGt (ExpInt (Int i)) (ExpInt (Int j)))                 =   return (ExpInt (Int (if i > j then 1 else 0)))
+eval s (GtGt exp1 exp2)                                         =   do  e1 <- eval s exp1
+                                                                        e2 <- eval s exp2
                                                                         eval s (GtGt e1 e2)
 
-eval s (Geq (ExpInt (Int i)) (ExpInt (Int j)))                  =   return (IntVal (if i >= j then 1 else 0))
-eval s (Geq exp1 exp2)                                          =   do  p1 <- eval s exp1
-                                                                        let e1 = progToExp p1
-                                                                        p2 <- eval s exp2
-                                                                        let e2 = progToExp p2
+eval s (Geq (ExpInt (Int i)) (ExpInt (Int j)))                  =   return (ExpInt (Int (if i >= j then 1 else 0)))
+eval s (Geq exp1 exp2)                                          =   do  e1 <- eval s exp1
+                                                                        e2 <- eval s exp2
                                                                         eval s (Geq e1 e2)
 
-eval s (And (ExpInt (Int i)) (ExpInt (Int j)))                  =   return (IntVal (if k && l then 1 else 0))
+eval s (And (ExpInt (Int i)) (ExpInt (Int j)))                  =   return (ExpInt (Int (if k && l then 1 else 0)))
     where   k   =   i /= 0
             l   =   j /= 0
-eval s (And exp1 exp2)                                          =   do  p1 <- eval s exp1
-                                                                        let e1 = progToExp p1
-                                                                        p2 <- eval s exp2
-                                                                        let e2 = progToExp p2
+eval s (And exp1 exp2)                                          =   do  e1 <- eval s exp1
+                                                                        e2 <- eval s exp2
                                                                         eval s (And e1 e2)
 
-eval s (Or (ExpInt (Int i)) (ExpInt (Int j)))                   =   return (IntVal (if k || l then 1 else 0))
+eval s (Or (ExpInt (Int i)) (ExpInt (Int j)))                   =   return (ExpInt (Int (if k || l then 1 else 0)))
     where   k   =   i /= 0
             l   =   j /= 0
-eval s (Or exp1 exp2)                                           =   do  p1 <- eval s exp1
-                                                                        let e1 = progToExp p1
-                                                                        p2 <- eval s exp2
-                                                                        let e2 = progToExp p2
+eval s (Or exp1 exp2)                                           =   do  e1 <- eval s exp1
+                                                                        e2 <- eval s exp2
                                                                         eval s (Or e1 e2)
 
-eval s (Plus (ExpInt (Int i)) (ExpInt (Int j)))                 =   return (IntVal (i + j))
-eval s (Plus (ExpString (String s1)) (ExpString (String s2)))   =   return (StringVal (s1 ++ s2))
-eval s (Plus exp1 exp2)                                         =   do  p1 <- eval s exp1
-                                                                        let e1 = progToExp p1
-                                                                        p2 <- eval s exp2
-                                                                        let e2 = progToExp p2
+eval s (Plus (ExpInt (Int i)) (ExpInt (Int j)))                 =   return (ExpInt (Int (i + j)))
+eval s (Plus (ExpString (String s1)) (ExpString (String s2)))   =   return (ExpString (String (s1 ++ s2)))
+eval s (Plus exp1 exp2)                                         =   do  e1 <- eval s exp1
+                                                                        e2 <- eval s exp2
                                                                         eval s (Plus e1 e2)
 
-eval s (Minus (ExpInt (Int i)) (ExpInt (Int j)))                =   return (IntVal (i - j))
-eval s (Minus exp1 exp2)                                        =   do  p1 <- eval s exp1
-                                                                        let e1 = progToExp p1
-                                                                        p2 <- eval s exp2
-                                                                        let e2 = progToExp p2
+eval s (Minus (ExpInt (Int i)) (ExpInt (Int j)))                =   return (ExpInt (Int (i - j)))
+eval s (Minus exp1 exp2)                                        =   do  e1 <- eval s exp1
+                                                                        e2 <- eval s exp2
                                                                         eval s (Minus e1 e2)
 
-eval s (Times (ExpInt (Int i)) (ExpInt (Int j)))                =   return (IntVal (i * j))
-eval s (Times exp1 exp2)                                        =   do  p1 <- eval s exp1
-                                                                        let e1 = progToExp p1
-                                                                        p2 <- eval s exp2
-                                                                        let e2 = progToExp p2
+eval s (Times (ExpInt (Int i)) (ExpInt (Int j)))                =   return (ExpInt (Int (i * j)))
+eval s (Times exp1 exp2)                                        =   do  e1 <- eval s exp1
+                                                                        e2 <- eval s exp2
                                                                         eval s (Times e1 e2)
 
-eval s (Divide (ExpInt (Int i)) (ExpInt (Int j)))               =   return (IntVal (i `div` j))
-eval s (Divide exp1 exp2)                                       =   do  p1 <- eval s exp1
-                                                                        let e1 = progToExp p1
-                                                                        p2 <- eval s exp2
-                                                                        let e2 = progToExp p2
+eval s (Divide (ExpInt (Int i)) (ExpInt (Int j)))               =   return (ExpInt (Int (i `div` j)))
+eval s (Divide exp1 exp2)                                       =   do  e1 <- eval s exp1
+                                                                        e2 <- eval s exp2
                                                                         eval s (Divide e1 e2)
 
-eval _ (ReadInt)                                                =   readIntProg
+eval _ (ReadInt)                                                =   readIntExp
 
-eval _ (ReadString)                                             =   readStringProg
+eval _ (ReadString)                                             =   readStringExp
 
 eval s (Branch (ExpInt (Int i)) exp2 exp3)                      =   if i /= 0 then
                                                                         eval s exp2
                                                                     else
                                                                         eval s exp3
-eval s (Branch exp1 exp2 exp3)                                  =   do  p1 <- eval s exp1
-                                                                        let e1 = progToExp p1
+eval s (Branch exp1 exp2 exp3)                                  =   do  e1 <- eval s exp1
                                                                         eval s (Branch e1 exp2 exp3)
 
-eval s (Let idConst exp1 exp2)                                  =   do  p1 <- eval s exp1
-                                                                        let s' = Map.insert idConst p1 s
+eval s (Let idConst exp1 exp2)                                  =   do  e1 <- eval s exp1
+                                                                        let s' = Map.insert idConst e1 s
                                                                         eval s' exp2
 
-eval s (Application (x:xs))                                     =   eval s (apply x xs)
+eval s (Application (x:xs))                                     =   do  e1 <- apply s x xs
+                                                                        eval s e1 
 
-eval s (Nil)                                                    =   return (NilVal)
+eval s (Nil)                                                    =   return (Nil)
 
-eval s (Cons exp1 exp2)                                         =   do  p1 <- eval s exp1
-                                                                        p2 <- eval s exp2
-                                                                        return (ConsVal p1 p2)
+eval s (Cons exp1 exp2)                                         =   do  e1 <- eval s exp1
+                                                                        e2 <- eval s exp2
+                                                                        return (Cons e1 e2)
 
-eval s (HD (Nil))                                               =   return (NilVal)
-eval s (HD (Cons exp1 exp2))                                    =   do  p1 <- eval s exp1
-                                                                        let e1 = progToExp p1
-                                                                        return (expToProg e1)
-eval s (HD exp1)                                                =   do  p1 <- eval s exp1
-                                                                        let e1 = progToExp p1
+eval s (HD (Nil))                                               =   return (Nil)
+eval s (HD (Cons exp1 exp2))                                    =   return (exp1)
+eval s (HD exp1)                                                =   do  e1 <- eval s exp1
                                                                         eval s (HD e1)
 
-eval s (TL (Nil))                                               =   return (NilVal)
-eval s (TL (Cons exp1 exp2))                                    =   do  p2 <- eval s exp2
-                                                                        let e2 = progToExp p2
-                                                                        return (expToProg e2)
-eval s (TL exp1)                                                =   do  p1 <- eval s exp1
-                                                                        let e1 = progToExp p1
+eval s (TL (Nil))                                               =   return (Nil)
+eval s (TL (Cons exp1 exp2))                                    =   return (exp2)
+eval s (TL exp1)                                                =   do  e1 <- eval s exp1
                                                                         eval s (TL e1)
 
-eval s (Isnil (Nil))                                            =   return (IntVal 1)
-eval s (Isnil (ExpInt _))                                       =   return (IntVal 0)
-eval s (Isnil (ExpString _))                                    =   return (IntVal 0)
-eval s (Isnil (Lambda _ _))                                     =   return (IntVal 0)
-eval s (Isnil (Cons _ _))                                       =   return (IntVal 0)
-eval s (Isnil (exp))                                            =   do  p1 <- eval s exp
-                                                                        let e1 = progToExp p1
+eval s (Isnil (Nil))                                            =   return (ExpInt (Int 1))
+eval s (Isnil (ExpInt _))                                       =   return (ExpInt (Int 0))
+eval s (Isnil (ExpString _))                                    =   return (ExpInt (Int 0))
+eval s (Isnil (Lambda _ _))                                     =   return (ExpInt (Int 0))
+eval s (Isnil (Cons _ _))                                       =   return (ExpInt (Int 0))
+eval s (Isnil (exp))                                            =   do  e1 <- eval s exp
                                                                         eval s (Isnil (e1))
+
 
 main :: IO ()
 main =  do  args <- getArgs
