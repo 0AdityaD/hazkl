@@ -12,12 +12,18 @@ import qualified Data.Map as Map
 data Prog   =   LambdaVal IdConst Exp
             |   StringVal String
             |   IntVal Int
+            |   NilVal
+            |   ConsVal Prog Prog
+            |   HdVal Exp
+            |   TlVal Exp
         deriving (Eq)
 
 instance Show Prog where
-    show (LambdaVal id exp) = "lambda " ++ (show id) ++ ". " ++ (show exp)
-    show (IntVal num)       = show num
-    show (StringVal str)    = "\"" ++ str ++ "\""
+    show (LambdaVal id exp)     = "lambda " ++ (show id) ++ ". " ++ (show exp)
+    show (IntVal num)           = show num
+    show (StringVal str)        = "\"" ++ str ++ "\""
+    show (NilVal)               = "Nil"
+    show (ConsVal prog1 prog2)  = "[" ++ (show prog1) ++ ", " ++ (show prog2) ++ "]"
 
 type Env    =   Map IdConst Prog
 
@@ -25,11 +31,19 @@ progToExp :: Prog -> Exp
 progToExp (IntVal i)                    =   ExpInt (Int i)
 progToExp (StringVal s)                 =   ExpString (String s)
 progToExp (LambdaVal idConst exp)       =   Lambda idConst exp
+progToExp (ConsVal prog1 prog2)         =   Cons (progToExp prog1) (progToExp prog2)
+progToExp (HdVal exp1)                  =   HD exp1
+progToExp (TlVal exp1)                  =   TL exp1
+progToExp (NilVal)                      =   Nil
 
 expToProg :: Exp -> Prog
 expToProg (ExpInt (Int i))              =   IntVal i
 expToProg (ExpString (String str))      =   StringVal str
 expToProg (Lambda idConst exp)          =   LambdaVal idConst exp
+expToProg (Cons exp1 exp2)              =   ConsVal (expToProg exp1) (expToProg exp2)
+expToProg (HD exp1)                     =   HdVal exp1
+expToProg (TL exp1)                     =   TlVal exp1
+expToPRog (Nil)                         =   NilVal
 
 printProg :: Prog -> IO Prog
 printProg p = do    putStrLn . show $ p
@@ -180,7 +194,36 @@ eval s (Let idConst exp1 exp2)                                  =   do  p1 <- ev
 
 eval s (Application (x:xs))                                     =   eval s (apply x xs)
 
--- TODO: ISNIL, CONS, HD, TL, NIL, Application
+eval s (Nil)                                                    =   return (NilVal)
+
+eval s (Cons exp1 exp2)                                         =   do  p1 <- eval s exp1
+                                                                        p2 <- eval s exp2
+                                                                        return (ConsVal p1 p2)
+
+eval s (HD (Nil))                                               =   return (NilVal)
+eval s (HD (Cons exp1 exp2))                                    =   do  p1 <- eval s exp1
+                                                                        let e1 = progToExp p1
+                                                                        return (expToProg e1)
+eval s (HD exp1)                                                =   do  p1 <- eval s exp1
+                                                                        let e1 = progToExp p1
+                                                                        eval s (HD e1)
+
+eval s (TL (Nil))                                               =   return (NilVal)
+eval s (TL (Cons exp1 exp2))                                    =   do  p2 <- eval s exp2
+                                                                        let e2 = progToExp p2
+                                                                        return (expToProg e2)
+eval s (TL exp1)                                                =   do  p1 <- eval s exp1
+                                                                        let e1 = progToExp p1
+                                                                        eval s (TL e1)
+
+eval s (Isnil (Nil))                                            =   return (IntVal 1)
+eval s (Isnil (ExpInt _))                                       =   return (IntVal 0)
+eval s (Isnil (ExpString _))                                    =   return (IntVal 0)
+eval s (Isnil (Lambda _ _))                                     =   return (IntVal 0)
+eval s (Isnil (Cons _ _))                                       =   return (IntVal 0)
+eval s (Isnil (exp))                                            =   do  p1 <- eval s exp
+                                                                        let e1 = progToExp p1
+                                                                        eval s (Isnil (e1))
 
 main :: IO ()
 main =  do  args <- getArgs
