@@ -119,8 +119,6 @@ showUnevaluatedCons (ExpString const)       = show const
 showUnevaluatedCons (ExpInt const)          = show const
 showUnevaluatedCons (ExpId const)           = show const
 
-
-
 fixLambdas :: Exp -> Exp
 fixLambdas (FakeLambda [x] exp)     =   (Lambda x (fixLambdas exp))
 fixLambdas (FakeLambda (x:xs) exp)  =   (Lambda x (fixLambdas (FakeLambda xs exp)))
