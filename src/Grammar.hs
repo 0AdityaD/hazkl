@@ -28,6 +28,7 @@ data Exp =      Print   Exp
             |   ExpString StringConst
             |   ExpInt IntConst
             |   ExpId IdConst
+            |   Error String
     deriving (Eq)
 
 instance Show Exp where
@@ -59,6 +60,7 @@ instance Show Exp where
     show (ExpString const)       = show const
     show (ExpInt const)          = show const
     show (ExpId const)           = show const
+    show (Error str)             = str
 
 data IntConst = Int Int
     deriving (Eq, Ord)
