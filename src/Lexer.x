@@ -18,7 +18,7 @@ import qualified Data.Map as Map ( empty )
 
 $whitespace = [\ \t\b]
 $digit      = 0-9                                            -- digits
-$alpha      = [A-Za-z]
+$alpha      = [A-Za-z_]
 
 @number     = [$digit]+
 @identifier = $alpha($alpha|_|$digit)*
