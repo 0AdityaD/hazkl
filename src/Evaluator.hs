@@ -1,13 +1,14 @@
-import Token
 import Lexer
 import Grammar
 import Parser
 import System.IO
+import System.IO.Unsafe
 import System.Environment
 import Data.Char
 import Data.Maybe
 import Data.Map (Map)
 import qualified Data.Map as Map
+import Data.Either
 
 type Env    =   Map IdConst Exp
 
@@ -336,11 +337,11 @@ eval s (Isnil (Cons _ _))                   =   return (ExpInt (Int 0))
 eval s (Isnil (exp))                        =   do  e1 <- eval s exp
                                                     eval s (Isnil (e1))
 
-
-main :: IO ()
-main =  do  args <- getArgs
-            let filename = head args
-            handle <- openFile filename ReadMode
-            program <- hGetContents handle
-            result <- eval (Map.fromList []) . fixLambdas . parse . scanTokens . map toLower $ program
-            putStrLn . show $ result
+main = do args <- getArgs
+          let filename = head args
+          handle <- openFile filename ReadMode
+          program <- hGetContents handle
+          let result = parse . map toLower $ program
+          case result of
+              Left  str -> print str
+              Right val -> print . unsafePerformIO . eval (Map.fromList []) . fixLambdas $ val

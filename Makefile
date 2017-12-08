@@ -8,7 +8,7 @@ all:
 init:
 	mkdir -p bin
 
-lex: init src/Lexer.x Makefile src/Token.hs
+lex: init src/Lexer.x Makefile
 	cd src;	alex Lexer.x
 
 lexer: init lex src/Lexer.x src/Lexer.hs Makefile

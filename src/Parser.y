@@ -1,48 +1,50 @@
 {
 module Parser where
-import Token
+import Lexer
 import Grammar
 }
 
-%name parse
-%tokentype  { TOKEN }
-%error      { parseError }
+%name parser
+%tokentype  { Token }
 
-%token  TOKEN_PRINT         { TOKEN_PRINT }
-%token  TOKEN_EQ            { TOKEN_EQ }
-%token  TOKEN_NEQ           { TOKEN_NEQ }
-%token  TOKEN_LT            { TOKEN_LT }
-%token  TOKEN_LEQ           { TOKEN_LEQ }
-%token  TOKEN_GT            { TOKEN_GT }
-%token  TOKEN_GEQ           { TOKEN_GEQ }
-%token  TOKEN_AND           { TOKEN_AND }
-%token  TOKEN_OR            { TOKEN_OR }
-%token  TOKEN_PLUS          { TOKEN_PLUS }
-%token  TOKEN_MINUS         { TOKEN_MINUS }
-%token  TOKEN_TIMES         { TOKEN_TIMES }
-%token  TOKEN_DIVIDE        { TOKEN_DIVIDE }
-%token  TOKEN_ISNIL         { TOKEN_ISNIL }
-%token  TOKEN_CONS          { TOKEN_CONS }
-%token  TOKEN_HD            { TOKEN_HD }
-%token  TOKEN_TL            { TOKEN_TL }
-%token  TOKEN_LPAREN        { TOKEN_LPAREN }
-%token  TOKEN_RPAREN        { TOKEN_RPAREN }
-%token  TOKEN_READINT       { TOKEN_READINT }
-%token  TOKEN_READSTRING    { TOKEN_READSTRING }
-%token  TOKEN_NIL           { TOKEN_NIL }
-%token  TOKEN_IF            { TOKEN_IF }
-%token  TOKEN_THEN          { TOKEN_THEN }
-%token  TOKEN_ELSE          { TOKEN_ELSE }
-%token  TOKEN_LET           { TOKEN_LET }
-%token  TOKEN_IN            { TOKEN_IN }
-%token  TOKEN_LAMBDA        { TOKEN_LAMBDA }
-%token  TOKEN_DOT           { TOKEN_DOT }
-%token  TOKEN_COMMA         { TOKEN_COMMA }
-%token  TOKEN_FUN           { TOKEN_FUN }
-%token  TOKEN_WITH          { TOKEN_WITH }
-%token  TOKEN_STRING        { TOKEN_STRING $$ }
-%token  TOKEN_INT           { TOKEN_INT $$ }
-%token  TOKEN_IDENTIFIER    { TOKEN_IDENTIFIER $$ }
+%monad { Alex }
+%lexer { lexer } { Token _ TOKEN_EOF}
+
+%token  TOKEN_PRINT         { Token _ TOKEN_PRINT }
+%token  TOKEN_EQ            { Token _ TOKEN_EQ }
+%token  TOKEN_NEQ           { Token _ TOKEN_NEQ }
+%token  TOKEN_LT            { Token _ TOKEN_LT }
+%token  TOKEN_LEQ           { Token _ TOKEN_LEQ }
+%token  TOKEN_GT            { Token _ TOKEN_GT }
+%token  TOKEN_GEQ           { Token _ TOKEN_GEQ }
+%token  TOKEN_AND           { Token _ TOKEN_AND }
+%token  TOKEN_OR            { Token _ TOKEN_OR }
+%token  TOKEN_PLUS          { Token _ TOKEN_PLUS }
+%token  TOKEN_MINUS         { Token _ TOKEN_MINUS }
+%token  TOKEN_TIMES         { Token _ TOKEN_TIMES }
+%token  TOKEN_DIVIDE        { Token _ TOKEN_DIVIDE }
+%token  TOKEN_ISNIL         { Token _ TOKEN_ISNIL }
+%token  TOKEN_CONS          { Token _ TOKEN_CONS }
+%token  TOKEN_HD            { Token _ TOKEN_HD }
+%token  TOKEN_TL            { Token _ TOKEN_TL }
+%token  TOKEN_LPAREN        { Token _ TOKEN_LPAREN }
+%token  TOKEN_RPAREN        { Token _ TOKEN_RPAREN }
+%token  TOKEN_READINT       { Token _ TOKEN_READINT }
+%token  TOKEN_READSTRING    { Token _ TOKEN_READSTRING }
+%token  TOKEN_NIL           { Token _ TOKEN_NIL }
+%token  TOKEN_IF            { Token _ TOKEN_IF }
+%token  TOKEN_THEN          { Token _ TOKEN_THEN }
+%token  TOKEN_ELSE          { Token _ TOKEN_ELSE }
+%token  TOKEN_LET           { Token _ TOKEN_LET }
+%token  TOKEN_IN            { Token _ TOKEN_IN }
+%token  TOKEN_LAMBDA        { Token _ TOKEN_LAMBDA }
+%token  TOKEN_DOT           { Token _ TOKEN_DOT }
+%token  TOKEN_COMMA         { Token _ TOKEN_COMMA }
+%token  TOKEN_FUN           { Token _ TOKEN_FUN }
+%token  TOKEN_WITH          { Token _ TOKEN_WITH }
+%token  TOKEN_STRING        { Token _ (TOKEN_STRING $$) }
+%token  TOKEN_INT           { Token _ (TOKEN_INT $$) }
+%token  TOKEN_IDENTIFIER    { Token _ (TOKEN_IDENTIFIER $$) }
 
 %nonassoc Exp
 %left TOKEN_PRINT
@@ -56,7 +58,7 @@ import Grammar
 
 %%
 
-Exp     :   TOKEN_PRINT Exp                                         { Print $2 } 
+Exp     :   TOKEN_PRINT Exp                                         { Print $2 }
         |   Exp TOKEN_EQ Exp                                        { EqEq $1 $3 }
         |   Exp TOKEN_NEQ Exp                                       { Neq $1 $3 }
         |   Exp TOKEN_LT Exp                                        { LtLt $1 $3 }
@@ -101,7 +103,15 @@ App     :   Exp Exp                                                 { [$1,$2] }
 
 {
 
-parseError :: [TOKEN] -> a
-parseError _ = error "Parse error"
+happyError :: Alex a
+happyError = do
+  (AlexPn _ line col) <- alexGetPosition
+  alexShowError (line, col, Nothing)
+
+parse :: String -> Either String Exp
+parse s =
+    case runAlex s $ parser of
+        Left str  -> Left str
+        Right exp -> Right exp
 
 }
