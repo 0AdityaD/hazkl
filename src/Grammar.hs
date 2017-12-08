@@ -72,7 +72,7 @@ data StringConst = String String
     deriving (Eq, Ord)
 
 instance Show StringConst where
-    show (String string) = "\"" ++ string ++ "\""
+    show (String string) = string
 
 data IdConst = Id String
     deriving (Eq, Ord)
