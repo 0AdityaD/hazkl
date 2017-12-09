@@ -57,7 +57,7 @@ instance Show Exp where
     show (FakeLambda list exp)   = "TODO fake lambda"
     show (Lambda id exp)         = "lambda " ++ (show id) ++ ". " ++ (showUnevaluatedCons exp)
     show (Application app)       = "(" ++ showApp app ++ ")"
-    show (ExpString const)       = show const
+    show (ExpString const)       = show . show $ const
     show (ExpInt const)          = show const
     show (ExpId const)           = show const
     show (Error str)             = str
@@ -115,7 +115,7 @@ showUnevaluatedCons (Let id exp1 exp2)      = "let " ++ (show id) ++ " = " ++ (s
 showUnevaluatedCons (FakeLambda list exp)   = "TODO fake lambda"
 showUnevaluatedCons (Lambda id exp)         = "lambda " ++ (show id) ++ ". " ++ (showUnevaluatedCons exp)
 showUnevaluatedCons (Application app)       = "(" ++ show app ++ ")"
-showUnevaluatedCons (ExpString const)       = show const
+showUnevaluatedCons (ExpString const)       = show . show $ const
 showUnevaluatedCons (ExpInt const)          = show const
 showUnevaluatedCons (ExpId const)           = show const
 

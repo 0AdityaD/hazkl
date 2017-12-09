@@ -48,7 +48,7 @@ cleansrc:
 cleanbin: init
 	cd bin; rm -f *
 
-test : $(RESULTS)
+test : hazkl $(RESULTS)
 
 $(OUTS) : %.out : .FORCE %.L
 	-$(L_INTERPRETER) $*.L > $*.out 2>&1 < $$(test -f $*.in && echo $*.in || echo /dev/null)
