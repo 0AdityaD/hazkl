@@ -5,7 +5,7 @@ import Data.Char
 
 main :: IO ()
 main = do program <- getContents
-          let result = parse . map toLower $ program
+          let result = parse . progLower True $ program
           case result of
             Left err -> print err
             Right ok -> print . fixLambdas $ ok
