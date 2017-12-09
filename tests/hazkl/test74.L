@@ -1,0 +1,1 @@
+fun f with x,n = if n=0 then x else let _=print x in let y = x*x in (f y n-1) in (f 2 32)

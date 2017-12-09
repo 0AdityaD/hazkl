@@ -1,0 +1,1 @@
+(lambda x.lambda x.lambda x.x 1 2 3)

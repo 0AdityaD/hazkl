@@ -1,0 +1,1 @@
+(((lambda f.( (lambda x. (f (x x) )) (lambda x. (f (x x)))))(lambda u, n. if n=0 | n=1 then 1 else (u (n-1)) + (u (n-2)) )) 15)
