@@ -13,7 +13,10 @@ import Data.Either
 type Env    =   Map IdConst Exp
 
 printExp :: Exp -> IO Exp
-printExp e = do putStrLn . show $ e
+printExp e = do if any (== '[') (show e) then
+                    putStrLn . show $ e
+                else
+                    putStrLn . filter (/= '"') . show $ e
                 return (ExpInt (Int 0))
 
 getNum :: IO Int
