@@ -12,8 +12,15 @@ DILLIG := $(patsubst %.L, %.dillig, $(TESTS))
 DIFFS := $(patsubst %.L, %.diff, $(TESTS))
 RESULTS := $(patsubst %.L, %.result, $(TESTS))
 
+LEXER_OUT = src/Lexer.hs
+PARSER_OUT = src/Parser.hs
+
+LEXER = ./bin/lexer
+PARSER = ./bin/parser
 L_INTERPRETER = ./bin/hazkl
 DILLIG_INTERPRETER = ./ref-interpreter
+
+RUN_TIMEOUT = 5
 
 .DEFAULT_GOAL=all
 
@@ -22,21 +29,21 @@ all: lexer parser hazkl
 init:
 	mkdir -p bin
 
-lex: init src/Lexer.x Makefile
+$(LEXER_OUT): init src/Lexer.x Makefile
 	cd src;	alex Lexer.x
 
-lexer: init lex src/Lexer.x src/Lexer.hs Makefile
+lexer: init src/Lexer.x $(LEXER_OUT) Makefile
 	cd src; ghc -o lexer LexMain.hs
 	mv src/lexer bin
 
-parse: init lex Makefile src/Grammar.hs src/Parser.y
+$(PARSER_OUT): init $(LEXER_OUT) Makefile src/Grammar.hs src/Parser.y
 	cd src; happy Parser.y
 
-parser: init parse Makefile
+parser: init $(PARSER_OUT) Makefile
 	cd src; ghc -o parser ParseMain.hs
 	mv src/parser bin
 
-hazkl: init parse lex Makefile src/Evaluator.hs
+hazkl: init $(LEXER_OUT) $(PARSER_OUT) Makefile src/Evaluator.hs
 	cd src; ghc -o hazkl Evaluator.hs
 	mv src/hazkl bin
 
@@ -51,10 +58,10 @@ cleanbin: init
 test : $(RESULTS)
 
 $(OUTS) : %.out : .FORCE %.L hazkl
-	-$(L_INTERPRETER) $*.L > $*.out 2>&1 < $$(test -f $*.in && echo $*.in || echo /dev/null)
+	(timeout $(RUN_TIMEOUT) $(L_INTERPRETER) $*.L 2>&1 < $$(test -f $*.in && echo $*.in || echo /dev/null) || true) | grep -v "Run-time error" > $*.out
 
 $(DILLIG) : %.dillig : .FORCE %.out
-	-${DILLIG_INTERPRETER} $*.L > $*.dillig 2>&1 < $$(test -f $*.in && echo $*.in || echo /dev/null)
+	(timeout $(RUN_TIMEOUT) ${DILLIG_INTERPRETER} $*.L 2>&1 < $$(test -f $*.in && echo $*.in || echo /dev/null) || true) | grep -v "Run-time error" > $*.dillig
 
 $(DIFFS) : %.diff : .FORCE %.dillig
 	diff -u $*.out $*.dillig > $*.diff 2>&1 || true
