@@ -16,7 +16,6 @@ import qualified Data.Map as Map ( empty )
 
 %wrapper "monadUserState"
 
-$whitespace = [\ \t\b]
 $digit      = 0-9                                            -- digits
 $alpha      = [A-Za-z_]
 
@@ -73,7 +72,7 @@ state:-
 <state_comment> "*)"         { unembedComment }
 <state_comment> .            ;
 <state_comment> \n           { skip }
-<0>             $whitespace+ ;
+<0>             $white+      ;
 <0>             @identifier  { getVariable }
 <0>             @number      { getInteger }
 <0>             .            { \_ _ -> lexerError "Illegal character" }
