@@ -80,6 +80,9 @@ eval s (Print (ExpString (String str)))                         =   do  result <
                                                                         return result
 eval s (Print (Lambda idConst exp1))                            =   do  result <- (printExp (Lambda idConst exp1))
                                                                         return result
+eval s (Print (Cons exp1 exp2))                                 =   do  e1 <- eval s (Cons exp1 exp2)
+                                                                        result <- (printExp (e1))
+                                                                        return result
 eval s (Print exp)                                              =   do  e1 <- eval s exp
                                                                         eval s (Print e1)
 
