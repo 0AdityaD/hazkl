@@ -6,6 +6,7 @@ INC_PARAMS=$(foreach d, $(INC), -I$d)
 TEST_DIR = ./tests/hazkl
 
 TESTS := $(sort $(wildcard ./${TEST_DIR}/*.L ))
+TEST_INS := $(patsubst %.L, %.in, $(TESTS))
 OUTS := $(patsubst %.L, %.out, $(TESTS))
 DILLIG := $(patsubst %.L, %.dillig, $(TESTS))
 DIFFS := $(patsubst %.L, %.diff, $(TESTS))
@@ -47,11 +48,13 @@ cleansrc:
 cleanbin: init
 	cd bin; rm -f *
 
+test : $(RESULTS)
+
 $(OUTS) : %.out : .FORCE %.L
-	-$(L_INTERPRETER) $*.L > $*.out 2>&1 || true
+	-$(L_INTERPRETER) $*.L > $*.out 2>&1 < $$(test -f $*.in && echo $*.in || echo /dev/null)
 
 $(DILLIG) : %.dillig : .FORCE %.out
-	-${DILLIG_INTERPRETER} $*.L > $*.dillig 2>&1
+	-${DILLIG_INTERPRETER} $*.L > $*.dillig 2>&1 < $$(test -f $*.in && echo $*.in || echo /dev/null)
 
 $(DIFFS) : %.diff : .FORCE %.dillig
 	diff -u $*.out $*.dillig > $*.diff 2>&1 || true
