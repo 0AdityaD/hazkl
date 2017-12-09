@@ -21,7 +21,7 @@ L_INTERPRETER = ./bin/hazkl
 BIN_DIR = ./bin
 DILLIG_INTERPRETER = ./ref-interpreter
 
-RUN_TIMEOUT = 5
+RUN_TIMEOUT = 10
 
 .DEFAULT_GOAL=all
 
