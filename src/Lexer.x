@@ -359,4 +359,13 @@ alexShowError (line, column, e) = lexerError "parse error"
 alexGetPosition :: Alex (AlexPosn)
 alexGetPosition = Alex $ \s@AlexState{alex_pos=pos} -> Right (s, pos)
 
+progLower :: Bool -> String -> String
+progLower _ []          =   []
+progLower True (x:xs)
+    |   x == '"'    =   x:(progLower False xs)
+    |   otherwise   =   (toLower x):(progLower True xs)
+progLower False (x:xs)
+    |   x == '"'    =   x:(progLower True xs)
+    |   otherwise   =   x:(progLower False xs)
+
 }

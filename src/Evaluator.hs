@@ -13,7 +13,7 @@ import Data.Either
 type Env    =   Map IdConst Exp
 
 printExp :: Exp -> IO Exp
-printExp e = do print e
+printExp e = do putStrLn . show $ e
                 return (ExpInt (Int 0))
 
 getNum :: IO Int
@@ -346,7 +346,7 @@ main = do args <- getArgs
           let filename = head args
           handle <- openFile filename ReadMode
           program <- hGetContents handle
-          let result = parse . map toLower $ program
+          let result = parse . progLower True $ program
           case result of
               Left  str -> print str
               Right val -> print . unsafePerformIO . eval (Map.fromList []) . fixLambdas $ val
