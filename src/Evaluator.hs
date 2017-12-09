@@ -313,6 +313,7 @@ eval s (Cons exp1 exp2)         =   do  e1 <- eval s exp1
                                                 e2 <- eval s exp2
                                                 case e2 of
                                                     (Error _)   -> return (e2)
+                                                    (Nil)       -> return (e1)
                                                     otherwise   -> return (Cons e1 e2)
 
 eval s (HD (Error str))                     =   return (Error str)
