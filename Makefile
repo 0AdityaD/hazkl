@@ -42,7 +42,7 @@ hazkl: init parse lex Makefile src/Evaluator.hs
 	mv src/hazkl bin
 	make --no-print-directory cleansrc
 
-clean: cleansrc cleanbin
+clean: cleansrc cleanbin cleantests
 
 cleansrc:
 	cd src; rm -f *.o *.hi lexer Lexer.hs parser Parser.hs hazkl
@@ -62,5 +62,8 @@ $(DIFFS) : %.diff : .FORCE %.dillig
 $(RESULTS) : %.result : .FORCE %.diff
 	@echo -n "--- $* ... "
 	@(test -s $*.diff && (echo "fail ---")) || (echo "pass ---")
+
+cleantests:
+	cd $(TEST_DIR); rm -f *.result *.dillig *.out *.diff
 
 .FORCE:
