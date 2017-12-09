@@ -1,9 +1,22 @@
+CC = g++
+CFLAGS = -g -Wall -std=c++0x
+INC=-. ./ast
+INC_PARAMS=$(foreach d, $(INC), -I$d)
+
+TEST_DIR = ./tests/hazkl
+
+TESTS := $(sort $(wildcard ./${TEST_DIR}/*.L ))
+OUTS := $(patsubst %.L, %.out, $(TESTS))
+DILLIG := $(patsubst %.L, %.dillig, $(TESTS))
+DIFFS := $(patsubst %.L, %.diff, $(TESTS))
+RESULTS := $(patsubst %.L, %.result, $(TESTS))
+
+L_INTERPRETER = ./bin/hazkl
+DILLIG_INTERPRETER = ./ref-interpreter
+
 .DEFAULT_GOAL=all
 
-all:
-	make --no-print-directory lexer
-	make --no-print-directory parser
-	make --no-print-directory hazkl
+all: lexer parser hazkl
 
 init:
 	mkdir -p bin
@@ -36,3 +49,18 @@ cleansrc:
 
 cleanbin: init
 	cd bin; rm -f *
+
+$(OUTS) : %.out : .FORCE %.L
+	-$(L_INTERPRETER) $*.L > $*.out 2>&1 || true
+
+$(DILLIG) : %.dillig : .FORCE %.out
+	-${DILLIG_INTERPRETER} $*.L > $*.dillig 2>&1
+
+$(DIFFS) : %.diff : .FORCE %.dillig
+	diff -u $*.out $*.dillig > $*.diff 2>&1 || true
+
+$(RESULTS) : %.result : .FORCE %.diff
+	@echo -n "--- $* ... "
+	@(test -s $*.diff && (echo "fail ---")) || (echo "pass ---")
+
+.FORCE:

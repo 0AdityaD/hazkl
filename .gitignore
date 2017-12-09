@@ -2,6 +2,10 @@
 !*.*
 !/**/
 
+*.out
+*.dillig
+*.diff
+
 */.stack/*
 
 src/Lexer.hs
