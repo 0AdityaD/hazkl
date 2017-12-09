@@ -18,52 +18,50 @@ PARSER_OUT = src/Parser.hs
 LEXER = ./bin/lexer
 PARSER = ./bin/parser
 L_INTERPRETER = ./bin/hazkl
+BIN_DIR = ./bin
 DILLIG_INTERPRETER = ./ref-interpreter
 
 RUN_TIMEOUT = 5
 
 .DEFAULT_GOAL=all
 
-all: lexer parser hazkl
+all: $(LEXER) $(PARSER) $(L_INTERPRETER)
 
-init:
-	mkdir -p bin
-
-$(LEXER_OUT): init src/Lexer.x Makefile
+$(LEXER_OUT): src/Lexer.x Makefile
 	cd src;	alex Lexer.x
 
-lexer: init src/Lexer.x $(LEXER_OUT) Makefile
+$(LEXER): src/Lexer.x $(LEXER_OUT) Makefile | $(BIN_DIR)
 	cd src; ghc -o lexer LexMain.hs
-	mv src/lexer bin
+	mv src/lexer $(LEXER)
 
-$(PARSER_OUT): init $(LEXER_OUT) Makefile src/Grammar.hs src/Parser.y
+$(PARSER_OUT): $(LEXER_OUT) Makefile src/Grammar.hs src/Parser.y
 	cd src; happy Parser.y
 
-parser: init $(PARSER_OUT) Makefile
+$(PARSER): $(PARSER_OUT) Makefile | $(BIN_DIR)
 	cd src; ghc -o parser ParseMain.hs
-	mv src/parser bin
+	mv src/parser $(PARSER)
 
-hazkl: init $(LEXER_OUT) $(PARSER_OUT) Makefile src/Evaluator.hs
+$(L_INTERPRETER): $(LEXER_OUT) $(PARSER_OUT) Makefile src/Evaluator.hs | $(BIN_DIR)
 	cd src; ghc -o hazkl Evaluator.hs
-	mv src/hazkl bin
+	mv src/hazkl $(L_INTERPRETER)
 
 clean: cleansrc cleanbin cleantests
 
 cleansrc:
 	cd src; rm -f *.o *.hi lexer Lexer.hs parser Parser.hs hazkl
 
-cleanbin: init
+cleanbin: | $(BIN_DIR)
 	cd bin; rm -f *
 
 test : $(RESULTS)
 
-$(OUTS) : %.out : .FORCE %.L hazkl
-	(timeout $(RUN_TIMEOUT) $(L_INTERPRETER) $*.L 2>&1 < $$(test -f $*.in && echo $*.in || echo /dev/null) || true) | grep -v "Run-time error" > $*.out
+$(OUTS) : %.out : .FORCE %.L $(L_INTERPRETER)
+	((timeout $(RUN_TIMEOUT) $(L_INTERPRETER) $*.L 2>&1 < $$(test -f $*.in && echo $*.in || echo /dev/null) || true) | egrep -v "(Run-time error|parse error|syntax error)" > $*.out) || true
 
-$(DILLIG) : %.dillig : .FORCE %.out
-	(timeout $(RUN_TIMEOUT) ${DILLIG_INTERPRETER} $*.L 2>&1 < $$(test -f $*.in && echo $*.in || echo /dev/null) || true) | grep -v "Run-time error" > $*.dillig
+$(DILLIG) : %.dillig : .FORCE
+	((timeout $(RUN_TIMEOUT) ${DILLIG_INTERPRETER} $*.L 2>&1 < $$(test -f $*.in && echo $*.in || echo /dev/null) || true) | egrep -v "(Run-time error|parse error|syntax error)" > $*.dillig) || true
 
-$(DIFFS) : %.diff : .FORCE %.dillig
+$(DIFFS) : %.diff : .FORCE %.dillig %.out
 	diff -u $*.out $*.dillig > $*.diff 2>&1 || true
 
 $(RESULTS) : %.result : .FORCE %.diff
