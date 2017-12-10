@@ -10,7 +10,6 @@ import Data.Map (Map)
 import qualified Data.Map as Map
 import Data.Either
 
-type Env    =   Map IdConst Exp
 
 printExp :: Exp -> IO Exp
 printExp e = do if any (== '[') (show e) then
@@ -36,7 +35,7 @@ readStringExp = do  string <- getLine
 
 apply :: Env -> Exp -> [Exp] -> IO Exp
 apply s (Lambda idConst exp1) (x:xs)    =   do  e1 <- (apply s exp1 xs)
-                                                return (subst idConst x e1)
+                                                return (subst s idConst x e1)
 apply s exp []                          =   return exp
 apply s exp (x:xs)                      =   do  e1 <- eval s exp
                                                 case e1 of
@@ -321,7 +320,7 @@ eval s (Cons exp1 exp2)         =   do  e1 <- eval s exp1
 
 eval s (HD (Error str))                     =   return (Error str)
 eval s (HD (Nil))                           =   return (Nil)
-eval s (HD (Cons exp1 exp2))                =   return (exp1)
+eval s (HD (Cons exp1 exp2))                =   eval s (exp1)
 eval s (HD (ExpInt i))                      =   return (ExpInt i)
 eval s (HD (ExpString str))                 =   return (ExpString str)
 eval s (HD (Lambda idConst exp))            =   return (Lambda idConst exp)
@@ -330,7 +329,7 @@ eval s (HD exp1)                            =   do  e1 <- eval s exp1
 
 eval s (TL (Error str))                     =   return (Error str)
 eval s (TL (Nil))                           =   return (Nil)
-eval s (TL (Cons exp1 exp2))                =   return (exp2)
+eval s (TL (Cons exp1 exp2))                =   eval s (exp2)
 eval s (TL (ExpInt i))                      =   return (Nil)
 eval s (TL (ExpString str))                 =   return (Nil)
 eval s (TL (Lambda idConst exp))            =   return (Nil)
