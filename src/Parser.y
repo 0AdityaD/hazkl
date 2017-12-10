@@ -35,6 +35,9 @@ import Grammar
 %token  TOKEN_IF            { Token _ TOKEN_IF }
 %token  TOKEN_THEN          { Token _ TOKEN_THEN }
 %token  TOKEN_ELSE          { Token _ TOKEN_ELSE }
+%token  TOKEN_SWITCH        { Token _ TOKEN_SWITCH }
+%token  TOKEN_WHERE         { Token _ TOKEN_WHERE }
+%token  TOKEN_COLON         { Token _ TOKEN_COLON }
 %token  TOKEN_LET           { Token _ TOKEN_LET }
 %token  TOKEN_IN            { Token _ TOKEN_IN }
 %token  TOKEN_LAMBDA        { Token _ TOKEN_LAMBDA }
@@ -84,6 +87,8 @@ Exp     :   TOKEN_PRINT Exp                                         { Print $2 }
         |   TOKEN_LAMBDA IdList TOKEN_DOT Exp %prec Exp             { FakeLambda $2 $4 }
         |   TOKEN_FUN IdConst TOKEN_WITH IdList TOKEN_EQ Exp TOKEN_IN Exp %prec Exp
                                                                     { Let $2 (FakeLambda $4 $6) $8}
+        |   TOKEN_SWITCH Exp TOKEN_WHERE CaseList TOKEN_ELSE TOKEN_COLON Exp %prec Exp
+                                                                    { switchToBranch (Switch $2 $4 $7) }
         |   TOKEN_LPAREN App TOKEN_RPAREN                           { Application $2 }
         |   StringConst                                             { ExpString $1 }
         |   IntConst                                                { ExpInt $1 }
@@ -97,6 +102,12 @@ IdConst:    TOKEN_IDENTIFIER                                        { Id $1 }
 
 IdList  :   IdConst                                                 { [$1] }
         |   IdConst TOKEN_COMMA IdList                              { $1 : $3 }
+
+Case:       Exp TOKEN_COLON Exp                                     { ($1,$3) }
+
+CaseList:   Case Case                                               { [$1, $2] }
+        |   Case CaseList                                           { $1 : $2 }
+
 
 App     :   Exp Exp                                                 { [$1,$2] }
         |   Exp App                                                 { $1 : $2 }

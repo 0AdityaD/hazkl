@@ -53,6 +53,9 @@ state:-
 <0>             "if"         { mkT TOKEN_IF }
 <0>             "then"       { mkT TOKEN_THEN }
 <0>             "else"       { mkT TOKEN_ELSE }
+<0>             "switch"     { mkT TOKEN_SWITCH }
+<0>             "where"      { mkT TOKEN_WHERE }
+<0>             ":"          { mkT TOKEN_COLON }
 <0>             "fun"        { mkT TOKEN_FUN }
 <0>             \,           { mkT TOKEN_COMMA }
 <0>             \"           { enterNewString `andBegin` state_string }
@@ -126,6 +129,9 @@ data TokenClass =
       | TOKEN_THEN
       | TOKEN_ELSE
       | TOKEN_LAMBDA
+      | TOKEN_SWITCH
+      | TOKEN_WHERE
+      | TOKEN_COLON
       | TOKEN_FUN
       | TOKEN_COMMA
       | TOKEN_STRING     String

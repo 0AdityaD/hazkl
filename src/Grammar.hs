@@ -24,6 +24,7 @@ data Exp =      Print   Exp
             |   Let     IdConst Exp Exp
             |   FakeLambda  IdList Exp
             |   Lambda  IdConst Exp
+            |   Switch  Exp CaseList Exp
             |   Application App
             |   ExpString StringConst
             |   ExpInt IntConst
@@ -61,6 +62,10 @@ instance Show Exp where
     show (ExpInt const)          = show const
     show (ExpId const)           = show const
     show (Error str)             = str
+
+type Case = (Exp,Exp)
+
+type CaseList = [Case]
 
 data IntConst = Int Int
     deriving (Eq, Ord)
@@ -118,6 +123,10 @@ showUnevaluatedCons (Application app)       = "(" ++ show app ++ ")"
 showUnevaluatedCons (ExpString const)       = show . show $ const
 showUnevaluatedCons (ExpInt const)          = show const
 showUnevaluatedCons (ExpId const)           = show const
+
+switchToBranch :: Exp -> Exp
+switchToBranch (Switch exp1 [(x1,x2)] exp2)    = (Branch (EqEq exp1 x1) x2 exp2)
+switchToBranch (Switch exp1 ((x1,x2):xs) exp2) = (Branch (EqEq exp1 x1) x2 (switchToBranch (Switch exp1 xs exp2)))
 
 fixLambdas :: Exp -> Exp
 fixLambdas (FakeLambda [x] exp)     =   (Lambda x (fixLambdas exp))
