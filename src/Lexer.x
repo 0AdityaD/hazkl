@@ -275,42 +275,10 @@ line_number Nothing                   = (0, 0)
 line_number (Just (AlexPn _ lig col)) = (lig, col)
 
 -- definition needed by Alex
-
-{-
-alexEOF :: Alex Token
-alexEOF = return (Token undefined TOKEN_EOF Nothing)
--}
-
 alexEOF :: Alex Token
 alexEOF = return (Token undefined TOKEN_EOF)
 
-{-
--- Execution
-scanner :: String -> Either String [Token]
-scanner str = let loop = do (t, m) <- alexComplementError alexMonadScan
-                            when (isJust m) (lexerError (fromJust m))
-                            let tok@(Token _ cl _) = t
-                            if (cl == TOKEN_EOF)
-                               then do f1 <- getLexerStringState
-                                       d2 <- getLexerCommentDepth
-                                       if ((not f1) && (d2 == 0))
-                                          then return [tok]
-                                          else if (f1)
-                                               then alexError "String not closed at end of file"
-                                               else alexError "Comment not closed at end of file"
-                               else do toks <- loop
-                                       return (tok : toks)
-              in  runAlex str loop
-
-
--- we capture the error message in order to complement it with the file position
-alexComplementError :: Alex a -> Alex (a, Maybe String)
-alexComplementError (Alex al) = Alex (\s -> case al s of
-                                                 Right (s', x) -> Right (s', (x, Nothing))
-                                                 Left  message -> Right (s, (undefined, Just message)))
-
--}
-
+-- Scanner for the lexer
 scanner :: String -> Either String [Token]
 scanner str = let loop = do t <- alexMonadScan
                             let tok@(Token _ cl) = t
