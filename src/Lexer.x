@@ -1,8 +1,3 @@
--- Lexer for the L language
---
--- Lexer is based off the Tiger lexer from the Alex examples
--- https://github.com/simonmar/alex/blob/master/examples/tiger.x
-
 {
 module Lexer where
 
