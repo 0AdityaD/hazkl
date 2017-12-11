@@ -105,7 +105,7 @@ IdList  :   IdConst                                                 { [$1] }
 
 Case:       Exp TOKEN_COLON Exp                                     { ($1,$3) }
 
-CaseList:   Case Case                                               { [$1, $2] }
+CaseList:   Case                                                    { [$1] }
         |   Case CaseList                                           { $1 : $2 }
 
 
