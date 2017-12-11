@@ -1,5 +1,5 @@
 
-#(((lambda x . x) (lambda x . x) (0))@((lambda f . ((lambda x . (f (x x))) (lambda x . (f (x x))))
+#(((lambda x . x) (lambda x . x) (print 0))@((lambda f . ((lambda x . (f (x x))) (lambda x . (f (x x))))
 lambda f . lambda n . (if n = 0 then 1 else n * (f (n - 1)))) (5 + (print 0)))@
 (
 fun f with x =

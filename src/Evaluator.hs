@@ -33,13 +33,13 @@ readStringExp :: IO Exp
 readStringExp = do  string <- getLine
                     return (ExpString (String string))
 
-apply :: Env -> Exp -> [Exp] -> IO Exp
-apply s (Lambda idConst exp1) (x:xs)    =   do  e1 <- (apply s exp1 xs)
-                                                return (subst s idConst x e1)
-apply s exp []                          =   return exp
-apply s exp (x:xs)                      =   do  e1 <- eval s exp
+apply :: Env -> [Exp] -> IO Exp
+apply s [x]                             =   return x
+apply s ((Lambda idConst exp1):(x:xs))  =   do  let e1 = (subst s idConst x exp1)
+                                                apply s (e1:xs)
+apply s (x:xs)                          =   do  e1 <- eval s x
                                                 case e1 of
-                                                    (Lambda idConst exp1)   ->  apply s e1 (x:xs)
+                                                    (Lambda idConst exp1)   ->  apply s (e1:xs)
                                                     (_)                     ->  return (nonLambdaApplyError (x:xs))
 
 binopSameTypeError :: Exp -> Exp
@@ -301,7 +301,7 @@ eval s (Let idConst exp1 exp2)  =   do  e1 <- eval s exp1
                                                 let s' = Map.insert idConst e1 s
                                                 eval s' exp2
 
-eval s (Application (x:xs))     =   do  e1 <- apply s x xs
+eval s (Application xs)         =   do  e1 <- apply s xs
                                         case e1 of
                                             Error _     -> return (e1)
                                             (_)         -> eval s e1 
@@ -320,7 +320,9 @@ eval s (Cons exp1 exp2)         =   do  e1 <- eval s exp1
 
 eval s (HD (Error str))                     =   return (Error str)
 eval s (HD (Nil))                           =   return (Nil)
-eval s (HD (Cons exp1 exp2))                =   eval s (exp1)
+eval s (HD (Cons exp1 exp2))                =   do  e1 <- fullEval s exp1
+                                                    e2 <- fullEval s exp2
+                                                    return e1
 eval s (HD (ExpInt i))                      =   return (ExpInt i)
 eval s (HD (ExpString str))                 =   return (ExpString str)
 eval s (HD (Lambda idConst exp))            =   return (Lambda idConst exp)
@@ -329,7 +331,9 @@ eval s (HD exp1)                            =   do  e1 <- eval s exp1
 
 eval s (TL (Error str))                     =   return (Error str)
 eval s (TL (Nil))                           =   return (Nil)
-eval s (TL (Cons exp1 exp2))                =   eval s (exp2)
+eval s (TL (Cons exp1 exp2))                =   do  e1 <- fullEval s exp1
+                                                    e2 <- fullEval s exp2
+                                                    return e2
 eval s (TL (ExpInt i))                      =   return (Nil)
 eval s (TL (ExpString str))                 =   return (Nil)
 eval s (TL (Lambda idConst exp))            =   return (Nil)
@@ -344,6 +348,22 @@ eval s (Isnil (Lambda _ _))                 =   return (ExpInt (Int 0))
 eval s (Isnil (Cons _ _))                   =   return (ExpInt (Int 0))
 eval s (Isnil (exp))                        =   do  e1 <- eval s exp
                                                     eval s (Isnil (e1))
+
+eval s (Error str)                          =   do  return (Error str)
+
+
+fullEval :: Env -> Exp -> IO Exp
+fullEval _ (ExpInt i)           =   return (ExpInt i)
+fullEval _ (ExpString s)        =   return (ExpString s)
+fullEval _ (Lambda id exp)      =   return (Lambda id exp)
+fullEval _ (Nil)                =   return (Nil)
+fullEval _ (Error str)          =   return (Error str)
+fullEval s (Cons exp1 exp2)     =   do  e1 <- fullEval s exp1
+                                        e2 <- fullEval s exp2
+                                        return (Cons e1 e2)
+fullEval s exp                  =   do  e <- eval s exp
+                                        fullEval s e
+
 
 main = do args <- getArgs
           let filename = head args

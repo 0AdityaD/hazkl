@@ -177,12 +177,14 @@ subst s old sub (Cons exp1 exp2)          =   (Cons (subst s old sub exp1) (subs
 subst s old sub (HD exp)                  =   (HD (subst s old sub exp))
 subst s old sub (TL exp)                  =   (TL (subst s old sub exp))
 subst s old sub (Branch exp1 exp2 exp3)   =   (Branch (subst s old sub exp1) (subst s old sub exp2) (subst s old sub exp3))
-subst s old sub (Let id exp1 exp2)        =   (Let id (subst s old sub exp1) (subst s old sub exp2))
+subst s old sub (Let id exp1 exp2)
+    |   id == old                         =   (Let id (subst s old sub exp1) (exp2))
+    |   otherwise                         =   (Let id (subst s old sub exp1) (subst s old sub exp2))
 subst s old sub (Application xs)          =   (Application (map (subst s old sub) xs))
 subst s old sub (Lambda idConst exp)
-    |   idConst == old                  =   (Lambda idConst exp)
-    |   otherwise                       =   (Lambda idConst (subst s old sub exp))
+    |   idConst == old                    =   (Lambda idConst exp)
+    |   otherwise                         =   (Lambda idConst (subst s old sub exp))
 subst s old sub (ExpId idConst)
-    |   idConst == old                  =   sub
-    |   otherwise                       =   (ExpId idConst)
+    |   idConst == old                    =   sub
+    |   otherwise                         =   (ExpId idConst)
 subst s old sub exp                       =   exp
