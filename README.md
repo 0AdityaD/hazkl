@@ -23,8 +23,8 @@ To automate our testing, we adapted a Makefile from Prof. Gheith's CS 429H Compu
 We use Pengxiang's updated reference interpreter to generate "correct" output, which the
 Makefile then compares against ours to check for our implementation's validity.
 
-Specifically, the "make" target "test" runs all tests in the test directory
-and outputs whether we pass or fail the test.
+This is done in the "make" target "test", which runs all tests in the test directory
+and outputs whether we pass or fail each test.
 
 Specifically, from the root project directory, the command we ran was:
 
