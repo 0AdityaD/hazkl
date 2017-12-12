@@ -28,7 +28,9 @@ and outputs whether we pass or fail the test.
 
 Specifically, from the root project directory, the command we ran was:
 
+```bash
 make -s test
+```
 
 Our Makefile can produce three executables located in the bin directory of the project root
 
