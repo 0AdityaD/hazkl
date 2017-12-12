@@ -1,6 +1,12 @@
 
 # Hazkl - an L interpreter in Haskell
 
+Authors:
+
+ * Aditya Durvasula <adityadurvasula@utexas.edu>
+ * Daniel Mancia <dmancia@utexas.edu>
+ * Aditya Vaidya <avaidya@cs.utexas.edu>
+
 `Hazkl`'s external dependencies are Alex (a Haskell equivalent of GNU flex)
 and Happy (a Haskell equivalent of GNU `bison` or `Yacc`).
 
