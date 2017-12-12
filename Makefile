@@ -62,7 +62,7 @@ $(DILLIG) : %.dillig : .FORCE
 	((timeout $(RUN_TIMEOUT) ${DILLIG_INTERPRETER} $*.L 2>&1 < $$(test -f $*.in && echo $*.in || echo /dev/null) || true) | egrep -v "(Run-time error|parse error|syntax error)" > $*.dillig) || true
 
 $(DIFFS) : %.diff : .FORCE %.dillig %.out
-	diff -u $*.out $*.dillig > $*.diff 2>&1 || true
+	diff -u $*.out $$(test -f $*.ok && echo $*.ok || echo $*.dillig) > $*.diff 2>&1 || true
 
 $(RESULTS) : %.result : .FORCE %.diff
 	@echo -n "--- $* ... "
